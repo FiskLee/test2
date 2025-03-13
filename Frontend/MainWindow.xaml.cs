@@ -1,5 +1,4 @@
 using ArmaReforgerServerMonitor.Frontend.Configuration;
-using ArmaReforgerServerMonitor.Frontend.Models;
 using ArmaReforgerServerMonitor.Frontend.Rcon;
 using ArmaReforgerServerMonitor.Frontend.Services;
 using ArmaReforgerServerMonitor.Frontend.Windows;
@@ -22,6 +21,7 @@ using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +31,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using NetworkException = ArmaReforgerServerMonitor.Frontend.Services.NetworkException;
-
+using ArmaReforgerServerMonitor.Frontend.Models;
 namespace ArmaReforgerServerMonitor.Frontend
 {
     /// <summary>
@@ -66,6 +66,9 @@ namespace ArmaReforgerServerMonitor.Frontend
         private int _failureCount = 0;
         private const int MaxFailures = 3;
         private DateTime _lastUpdateTime;
+
+
+
 
         private readonly ObservableCollection<double> _cpuValues = new();
         private readonly ObservableCollection<double> _memoryValues = new();
@@ -203,27 +206,35 @@ namespace ArmaReforgerServerMonitor.Frontend
 
         private bool _isDisposed;
 
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = Log.ForContext<MainWindow>();
+
 
         private readonly IServiceProvider _serviceProvider;
-
-        private string _networkStatus;
+        private string _networkStatus = string.Empty;
         public string NetworkStatus
         {
             get => _networkStatus;
             set => SetProperty(ref _networkStatus, value);
         }
 
-        private string _diagnosticsText;
+        private string _diagnosticsText = string.Empty;
         public string DiagnosticsText
         {
             get => _diagnosticsText;
             set => SetProperty(ref _diagnosticsText, value);
         }
 
+        // Define the 'address' variable
+        private string address = string.Empty; // Initialize with a default value or obtain from user input
+
         /// <summary>
         /// Default constructor that resolves dependencies from the application's service provider.
         /// </summary>
+        public MainWindow() : this(((App)Application.Current).Services)
+        {
+            // This constructor is used by XAML to instantiate MainWindow
+        }
+
         public MainWindow(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
@@ -263,12 +274,18 @@ namespace ArmaReforgerServerMonitor.Frontend
 
             _statusTextBlock = (TextBlock)FindName("StatusTextBlock");
 
-            _connectionStateTracker = new ConnectionStateTracker(services.GetRequiredService<ILogger<ConnectionStateTracker>>());
+            _connectionStateTracker = new ConnectionStateTracker(Log.ForContext<ConnectionStateTracker>());
+
 
             // Initialize the _battleyeRconClient field
             _battleyeRconClient = services.GetRequiredService<BattleyeRconClient>();
 
-            _logger.LogInformation("FrontendLogsWindow initialized.");
+            _logger.Information("FrontendLogsWindow initialized.");
+        }
+
+        private void UpdateDemoParameters()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -292,11 +309,16 @@ namespace ArmaReforgerServerMonitor.Frontend
 
             // Subscribe to events
             Loaded += OnWindowLoaded;
-            Closing += OnWindowClosing;
+            Closing += OnWindowClosingAsync;
             _themeService.ThemeChanged += OnThemeChanged;
             _updateService.UpdateStatusChanged += OnUpdateStatusChanged;
 
-            _logger.LogDebug("Window setup completed");
+            _logger.Debug("Window setup completed");
+        }
+
+        private void OnUpdateStatusChanged(object? sender, Services.UpdateStatusEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -314,17 +336,17 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             try
             {
-                _logger.LogInformation("Window loaded, initializing components");
+                _logger.Information("Window loaded, initializing components");
 
                 // Initialize RCON port from settings if available
                 if (_settings != null && !string.IsNullOrWhiteSpace(_settings.RconPort))
                 {
                     RconPortTextBox.Text = _settings.RconPort;
-                    _logger.LogDebug("Initialized RCON port from settings: {Port}", _settings.RconPort);
+                    _logger.Debug("Initialized RCON port from settings: {Port}", _settings.RconPort);
                 }
                 else
                 {
-                    _logger.LogDebug("No RCON port found in settings, using default");
+                    _logger.Debug("No RCON port found in settings, using default");
                 }
 
                 // Only start polling timer if we're in demo mode or have valid credentials
@@ -346,7 +368,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during window initialization");
+                _logger.Error(ex, "Error during window initialization");
                 MessageBox.Show($"An error occurred during initialization: {ex.Message}", "Initialization Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -364,11 +386,11 @@ namespace ArmaReforgerServerMonitor.Frontend
         /// 3. Cleans up resources
         /// 4. Logs out if authenticated
         /// </remarks>
-        private void OnWindowClosing(object? sender, CancelEventArgs e)
+        private async void OnWindowClosingAsync(object? sender, CancelEventArgs e)
         {
             try
             {
-                _logger.LogInformation("Window closing, performing cleanup");
+                _logger.Information("Window closing, performing cleanup");
 
                 _pollTimer.Stop();
 
@@ -395,11 +417,11 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Operation canceled during window cleanup");
+                _logger.Warning(ex, "Operation canceled during window cleanup");
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogError(ex, "Error during window cleanup");
+                _logger.Error(ex, "Error during window cleanup");
             }
         }
 
@@ -436,7 +458,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                 }
                 else
                 {
-                    _logger.LogDebug("Polling backend for updates");
+                    _logger.Debug("Polling backend for updates");
 
                     if (!_authService.IsAuthenticated)
                     {
@@ -465,12 +487,12 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (UnauthorizedAccessException)
             {
-                _logger.LogWarning("Authentication expired");
+                _logger.Warning("Authentication expired");
                 HandleConnectionLoss("Authentication expired");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error polling backend");
+                _logger.Error(ex, "Error polling backend");
                 HandleConnectionLoss("Error polling backend: " + ex.Message);
             }
         }
@@ -496,8 +518,13 @@ namespace ArmaReforgerServerMonitor.Frontend
                     throw new ArgumentException("Server URL cannot be empty");
                 }
 
-                _logger.LogInformation("Attempting to connect to server: {Url}", serverUrl);
+                _logger.Information("Attempting to connect to server: {Url}", serverUrl);
 
+                // Use the serverUrl as the baseUrl for MetricsService operations
+                var metricsService = _serviceProvider.GetRequiredService<IMetricsService>();
+                await metricsService.GetOSMetricsAsync(new Uri(serverUrl));
+
+                // Continue with the connection logic...
                 var (success, error) = await _authService.LoginAsync(
                     serverUrl,
                     UsernameTextBox.Text,
@@ -505,19 +532,19 @@ namespace ArmaReforgerServerMonitor.Frontend
 
                 if (success)
                 {
-                    _logger.LogInformation("Successfully connected to server");
+                    _logger.Information("Successfully connected to server");
                     _isConnected = true;
                     UpdateConnectionStatus(true, "Successfully connected to server");
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to connect: {Error}", error);
+                    _logger.Warning("Failed to connect: {Error}", error);
                     HandleConnectionLoss(error);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error connecting to server");
+                _logger.Error(ex, "Error connecting to server");
                 HandleConnectionLoss(ex.Message);
             }
         }
@@ -535,7 +562,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         /// </remarks>
         private void HandleConnectionLoss(string reason)
         {
-            _logger.LogWarning("Connection lost: {Reason}", reason);
+            _logger.Warning("Connection lost: {Reason}", reason);
 
             _isConnected = false;
             UpdateConnectionStatus(false, reason);
@@ -543,12 +570,12 @@ namespace ArmaReforgerServerMonitor.Frontend
             if (_settings.AutoReconnect && _failureCount < MaxFailures)
             {
                 _failureCount++;
-                _logger.LogInformation("Auto-reconnect enabled, will attempt reconnection (attempt {Count}/{Max})",
+                _logger.Information("Auto-reconnect enabled, will attempt reconnection (attempt {Count}/{Max})",
                     _failureCount, MaxFailures);
             }
             else if (_failureCount >= MaxFailures)
             {
-                _logger.LogWarning("Max reconnection attempts reached");
+                _logger.Warning("Max reconnection attempts reached");
                 _failureCount = 0;
             }
         }
@@ -569,17 +596,17 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             try
             {
-                _logger.LogDebug("Updating connection status - Connected: {Connected}, Message: {Message}", connected, message);
+                _logger.Debug("Updating connection status - Connected: {Connected}, Message: {Message}", connected, message);
 
                 if (!Dispatcher.CheckAccess())
                 {
-                    _logger.LogDebug("Cross-thread UI update detected, dispatching to UI thread");
+                    _logger.Debug("Cross-thread UI update detected, dispatching to UI thread");
                     Dispatcher.Invoke(() => UpdateConnectionStatus(connected, message));
                     return;
                 }
 
                 // Log UI state before changes
-                _logger.LogDebug("Current UI state:\n" +
+                _logger.Debug("Current UI state:\n" +
                     "1. Status Text: {CurrentStatus}\n" +
                     "2. Status Color: {CurrentColor}\n" +
                     "3. Connect Button Text: {ButtonText}\n" +
@@ -606,7 +633,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error updating UI elements:\n" +
+                    _logger.Error(ex, "Error updating UI elements:\n" +
                         "1. Exception Details:\n" +
                         "   - Type: {ExceptionType}\n" +
                         "   - Message: {Message}\n" +
@@ -628,7 +655,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                 }
 
                 // Log UI state after changes
-                _logger.LogDebug("Updated UI state:\n" +
+                _logger.Debug("Updated UI state:\n" +
                     "1. Status Text: {NewStatus}\n" +
                     "2. Status Color: {NewColor}\n" +
                     "3. Connect Button Text: {NewButtonText}\n" +
@@ -640,7 +667,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Critical error in UpdateConnectionStatus:\n" +
+                _logger.Error(ex, "Critical error in UpdateConnectionStatus:\n" +
                     "1. Exception Details:\n" +
                     "   - Type: {ExceptionType}\n" +
                     "   - Message: {Message}\n" +
@@ -677,7 +704,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             if (metrics == null)
             {
-                _logger.LogWarning("Received null metrics data");
+                _logger.Warning("Received null metrics data");
                 return;
             }
 
@@ -704,7 +731,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating metrics display");
+                _logger.Error(ex, "Error updating metrics display");
             }
         }
 
@@ -752,7 +779,8 @@ namespace ArmaReforgerServerMonitor.Frontend
                 _logger.Information("Saving application settings");
 
                 // Save window position and size
-                await Dispatcher.InvokeAsync(() => SaveWindowSettings()).ConfigureAwait(false);
+                await Dispatcher.InvokeAsync(() => SaveWindowSettings());
+
 
                 // Save other settings asynchronously
                 await Task.Run(() => _settingsService.SaveSettings()).ConfigureAwait(false);
@@ -800,7 +828,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             _logger.Information("Update status changed: {Status}", e.Status);
 
-            if (e.Status == UpdateStatus.UpdateAvailable)
+            if (e.Status == Models.UpdateStatus.UpdateAvailable)
             {
                 Dispatcher.Invoke(ShowUpdateAvailableDialog);
             }
@@ -838,7 +866,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                     summary.AppendLine($"{log.Timestamp:yyyy-MM-dd HH:mm:ss} [{log.Level}] {log.Message}");
                 }
             }
-            ConsoleLogSummary = summary.ToString(CultureInfo.InvariantCulture);
+            ConsoleLogSummary = summary.ToString();
         }
 
         private void UpdateChart<T>(ObservableCollection<ISeries> series, ObservableCollection<string> labels, T value, string title)
@@ -913,7 +941,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             try
             {
-                ShowDemoConfigDialog().ConfigureAwait(false);
+                ShowDemoConfigDialog();
             }
             catch (Exception ex)
             {
@@ -923,7 +951,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
         }
 
-        private async Task ShowDemoConfigDialog()
+        private void ShowDemoConfigDialog()
         {
             if (_settings?.DemoSettings == null)
             {
@@ -933,16 +961,17 @@ namespace ArmaReforgerServerMonitor.Frontend
 
             var demoParams = new DemoParameters
             {
-                CpuRange = _settings.DemoSettings.DefaultCpuRange,
-                MemoryRange = _settings.DemoSettings.DefaultMemoryRange,
-                FpsRange = _settings.DemoSettings.DefaultFpsRange,
-                PlayerCount = _settings.DemoSettings.DefaultPlayerCount,
+                CpuRange = (_settings.DemoSettings.DefaultCpuRange.Min, _settings.DemoSettings.DefaultCpuRange.Max),
+                MemoryRange = (_settings.DemoSettings.DefaultMemoryRange.Min, _settings.DemoSettings.DefaultMemoryRange.Max),
+                FpsRange = (_settings.DemoSettings.DefaultFpsRange.Min, _settings.DemoSettings.DefaultFpsRange.Max),
+                PlayerCount = (_settings.DemoSettings.DefaultPlayerCount.Min, _settings.DemoSettings.DefaultPlayerCount.Max),
                 UpdateFrequencyMs = _settings.DemoSettings.DefaultUpdateFrequencyMs,
                 ErrorProbability = _settings.DemoSettings.DefaultErrorProbability,
                 SimulateLatency = _settings.DemoSettings.SimulateLatencyByDefault,
-                LatencyRange = _settings.DemoSettings.DefaultLatencyRange,
+                LatencyRange = (_settings.DemoSettings.DefaultLatencyRange.Min, _settings.DemoSettings.DefaultLatencyRange.Max),
                 GenerateTrends = _settings.DemoSettings.GenerateTrendsByDefault,
-                TrendCycleDuration = _settings.DemoSettings.DefaultTrendCycleDuration
+                // Assign a single int value for TrendCycleDuration instead of a tuple.
+                TrendCycleDuration = (int)_settings.DemoSettings.DefaultTrendCycleDuration.Min
             };
 
             var dialog = new DemoConfigWindow(_demoService, demoParams);
@@ -967,28 +996,41 @@ namespace ArmaReforgerServerMonitor.Frontend
                 return;
             }
 
-            _settings.DemoSettings.DefaultCpuRange = parameters.CpuRange;
-            _settings.DemoSettings.DefaultMemoryRange = parameters.MemoryRange;
-            _settings.DemoSettings.DefaultFpsRange = parameters.FpsRange;
-            _settings.DemoSettings.DefaultPlayerCount = parameters.PlayerCount;
-            _settings.DemoSettings.DefaultUpdateFrequencyMs = parameters.UpdateFrequencyMs;
-            _settings.DemoSettings.DefaultErrorProbability = parameters.ErrorProbability;
-            _settings.DemoSettings.SimulateLatencyByDefault = parameters.SimulateLatency;
-            _settings.DemoSettings.DefaultLatencyRange = parameters.LatencyRange;
-            _settings.DemoSettings.GenerateTrendsByDefault = parameters.GenerateTrends;
-            _settings.DemoSettings.DefaultTrendCycleDuration = parameters.TrendCycleDuration;
+
+
+            // Convert tuple to MetricRange
+            _settings.DemoSettings.DefaultCpuRange = new MetricRange
+            {
+                Min = (int)parameters.CpuRange.Min,
+                Max = (int)parameters.CpuRange.Max
+            };
+            _settings.DemoSettings.DefaultMemoryRange = new MetricRange
+            {
+                Min = (int)parameters.MemoryRange.Min,
+                Max = (int)parameters.MemoryRange.Max
+            };
+            _settings.DemoSettings.DefaultFpsRange = new MetricRange
+            {
+                Min = (int)parameters.FpsRange.Min,
+                Max = (int)parameters.FpsRange.Max
+            };
+            _settings.DemoSettings.DefaultPlayerCount = new MetricRange
+            {
+                Min = (int)parameters.PlayerCount.Min,
+                Max = (int)parameters.PlayerCount.Max
+            };
 
             _settingsService.SaveSettings();
             await _demoService.RestartAsync(_cts.Token).ConfigureAwait(false);
         }
 
-        private async void OnToggleDemoModeClick(object sender, RoutedEventArgs e)
+        private void OnToggleDemoModeClick(object sender, RoutedEventArgs e)
         {
             var menuItem = (MenuItem)sender;
             _demoService.SetDemoMode(menuItem.IsChecked);
             if (menuItem.IsChecked)
             {
-                await ShowDemoConfigDialog().ConfigureAwait(false);
+                ShowDemoConfigDialog();
             }
         }
 
@@ -1025,12 +1067,33 @@ namespace ArmaReforgerServerMonitor.Frontend
 
         private async void OnConnectClick(object sender, RoutedEventArgs e)
         {
-            await Task.Run(() => Connect());
+            await ConnectToServer();
         }
 
         private async void OnDisconnectClick(object sender, RoutedEventArgs e)
         {
-            await Task.Run(() => Disconnect());
+            await DisconnectFromServer();
+        }
+
+        private async Task DisconnectFromServer()
+        {
+            try
+            {
+                if (_battleyeRconClient != null)
+                {
+                    // Disconnect asynchronously.
+                    await _battleyeRconClient.DisconnectAsync().ConfigureAwait(false);
+                    _battleyeRconClient.Dispose();
+                    _battleyeRconClient = null;
+                    _isConnected = false;
+                    UpdateConnectionStatus(false, "Disconnected from server.");
+                    _logger.Information("Disconnected from server successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error disconnecting from server.");
+            }
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)
@@ -1120,24 +1183,41 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             try
             {
-                if (!ValidateConnectionInputs())
+                if (!ValidateInputs())
                 {
                     return;
                 }
+                // Retrieve the address from the ServerUrlTextBox
+                var address = ServerUrlTextBox.Text;
 
-                var port = int.Parse(RconPort, CultureInfo.InvariantCulture);
-                var password = RconPassword;
+                // Parse the port and retrieve the password
+                var port = int.Parse(RconPortTextBox.Text, CultureInfo.InvariantCulture);
+                var password = RconPasswordTextBox.Password;
 
-                await _rconClient.ConnectAsync(ServerAddress, port, password).ConfigureAwait(false);
-                IsRconConnected = true;
-                _logger.Information("Connected to RCON on {ServerAddress}:{Port}", ServerAddress, port);
+                // Initialize the logger
+                var logger = new LoggerConfiguration()
+                    .WriteTo.Console()
+                    .CreateLogger();
+
+                // Instantiate the BattleyeRconClient with the address, port, and password
+                _battleyeRconClient = new BattleyeRconClient(address, port, password, logger);
+
+                // Connect using the Battleye RCON client
+                await _battleyeRconClient.ConnectAsync().ConfigureAwait(false);
+
+
+                // Set the connection flag.
+                _isConnected = true;
+
+                // Log the connection event using Serilog.
+                _logger.Information("Connected to RCON on {Address}:{Port}", address, port);
             }
             catch (FormatException ex)
             {
                 _logger.Error(ex, "Invalid RCON port format: {Message}", ex.Message);
                 MessageBox.Show("Invalid RCON port format. Please enter a valid number.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            catch (ConnectionException ex)
+            catch (NetworkException ex)
             {
                 _logger.Error(ex, "Failed to connect to RCON: {Message}", ex.Message);
                 MessageBox.Show($"Failed to connect to RCON: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -1148,10 +1228,9 @@ namespace ArmaReforgerServerMonitor.Frontend
                 MessageBox.Show("An unexpected error occurred while connecting to RCON.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        private static bool ValidateConnectionInputs()
+        private bool ValidateInputs()
         {
-            if (string.IsNullOrWhiteSpace(ServerAddress))
+            if (string.IsNullOrWhiteSpace(ServerUrlTextBox.Text))
             {
                 MessageBox.Show("Please enter a server address.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
@@ -1172,36 +1251,53 @@ namespace ArmaReforgerServerMonitor.Frontend
             return true;
         }
 
-        private async Task PerformNetworkDiagnosticsAsync(string host, int port)
+        public void Dispose()
         {
-            try
+            // Stop any running timers (DispatcherTimer does not implement IDisposable)
+            _pollTimer?.Stop();
+
+            // Cancel and dispose the CancellationTokenSource
+            if (!_cts.IsCancellationRequested)
             {
-                var diagnostics = new StringBuilder();
-                diagnostics.AppendLine($"Network Diagnostics for {host}:{port}");
-                diagnostics.AppendLine($"Ping: {pingResult.RoundTripTime}ms");
-                diagnostics.AppendLine($"Bandwidth: {bandwidth:F2} Mbps");
-                diagnostics.AppendLine($"Jitter: {jitter:F2}ms");
-                diagnostics.AppendLine($"Network Quality: {quality}");
-
-                var ping = state.NetworkStats.Ping;
-                var bandwidth = state.NetworkStats.Bandwidth;
-
-                var jitter = NetworkQualityHelper.CalculateJitter(pingResult.RoundTripTime);
-
-                var quality = GetNetworkStatusText(ping, jitter, bandwidth);
-
-                DiagnosticsText = diagnostics.ToString();
+                _cts.Cancel();
             }
-            catch (NetworkException ex)
-            {
-                _logger.Error(ex, "Network diagnostics failed: {Message}", ex.Message);
-                MessageBox.Show($"Network diagnostics failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Unexpected error during network diagnostics: {Message}", ex.Message);
-                MessageBox.Show("An unexpected error occurred during network diagnostics.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            _cts.Dispose();
+
+            // Dispose the SemaphoreSlim
+            _pollSemaphore?.Dispose();
+
+            // Dispose the Battleye RCON client if it's not null
+            _battleyeRconClient?.Dispose();
+
+            // Unsubscribe from events (optional but recommended)
+            Loaded -= OnWindowLoaded;
+            Closing -= OnWindowClosingAsync;
+            _themeService.ThemeChanged -= OnThemeChanged;
+            _updateService.UpdateStatusChanged -= OnUpdateStatusChanged;
+
+            // Prevent finalization.
+            GC.SuppressFinalize(this);
+        }
+
+        public class NetworkDiagnosticsResult
+        {
+            public bool IsDnsAvailable { get; set; }
+            public bool IsPortAccessible { get; set; }
+            public double Latency { get; set; }
+            public string NetworkType { get; set; } = string.Empty;
+            public double NetworkSpeed { get; set; }
+            public Dictionary<string, object> Diagnostics { get; set; } = new();
+            public bool PingSuccess { get; set; }
+            public double PingTime { get; set; }
+            public double Jitter { get; set; }
+            public double Bandwidth { get; set; }
+            public string Quality { get; set; } = string.Empty;
+        }
+
+        private static double CalculateJitter(double ping)
+        {
+            // Simple jitter calculation based on ping variation
+            return ping * 0.1; // 10% of ping as a rough estimate
         }
 
         private static string GetNetworkStatusText(double ping, double jitter, double bandwidth)
@@ -1213,60 +1309,6 @@ namespace ArmaReforgerServerMonitor.Frontend
             if (ping < 200 && jitter < 50 && bandwidth > 2)
                 return "Fair";
             return "Poor";
-        }
-
-        private static double CalculateJitter(double ping)
-        {
-            // Simple jitter calculation based on ping variation
-            return ping * 0.1; // 10% of ping as a rough estimate
-        }
-
-        private static string AssessNetworkQuality(double ping, double jitter, double bandwidth)
-        {
-            return GetNetworkStatusText(ping, jitter, bandwidth);
-        }
-
-        private async Task<double> GetNetworkBandwidth(string host)
-        {
-            try
-            {
-                // Implement actual bandwidth measurement logic here
-                // For now, return a simulated value
-                return 10.0;
-            }
-            catch (NetworkException ex)
-            {
-                _logger.Error(ex, "Failed to measure network bandwidth: {Message}", ex.Message);
-                throw;
-            }
-        }
-
-        private void UpdateConnectionNetworkStats(ConnectionState state)
-        {
-            try
-            {
-                if (state?.NetworkStats == null)
-                    return;
-
-                if (state.NetworkStats.TryGetValue("ping", out var pingObj) &&
-                    state.NetworkStats.TryGetValue("bandwidth", out var bandwidthObj))
-                {
-                    var ping = Convert.ToDouble(pingObj, CultureInfo.InvariantCulture);
-                    var bandwidth = Convert.ToDouble(bandwidthObj, CultureInfo.InvariantCulture);
-
-                    NetworkStatus = GetNetworkStatusText(ping, CalculateJitterValue(ping), bandwidth);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to update network stats: {Message}", ex.Message);
-            }
-        }
-
-        private static double CalculateJitterValue(double ping)
-        {
-            // Simple jitter calculation based on ping variation
-            return ping * 0.1; // 10% of ping as a rough estimate
         }
 
         protected virtual void Dispose(bool disposing)
@@ -1284,11 +1326,6 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
 
         // Remove these methods as they are no longer needed
 
@@ -1339,6 +1376,58 @@ namespace ArmaReforgerServerMonitor.Frontend
             // Implement the logic for stopping frontend logs fetch
             _logger.Information("Stopping frontend logs fetch...");
         }
+
+        private NetworkDiagnosticsResult PerformNetworkDiagnostics(string host, int port)
+        {
+            try
+            {
+                var diagnostics = new StringBuilder();
+                // Assuming pingResult, bandwidth, jitter, and quality are calculated elsewhere
+                var pingResult = new { RoundTripTime = 50 }; // Example placeholder
+                var bandwidth = 10.0; // Example placeholder
+                var jitter = CalculateJitter(pingResult.RoundTripTime);
+                var quality = GetNetworkStatusText(pingResult.RoundTripTime, jitter, bandwidth);
+
+                diagnostics.AppendLine($"Network Diagnostics for {host}:{port}");
+                diagnostics.AppendLine($"Ping: {pingResult.RoundTripTime}ms");
+                diagnostics.AppendLine($"Bandwidth: {bandwidth:F2} Mbps");
+                diagnostics.AppendLine($"Jitter: {jitter:F2}ms");
+                diagnostics.AppendLine($"Network Quality: {quality}");
+
+                DiagnosticsText = diagnostics.ToString();
+
+                return new NetworkDiagnosticsResult
+                {
+                    IsDnsAvailable = true, // Example placeholder
+                    IsPortAccessible = true, // Example placeholder
+                    Latency = pingResult.RoundTripTime,
+                    NetworkType = "ExampleType", // Example placeholder
+                    NetworkSpeed = bandwidth,
+                    Diagnostics = new Dictionary<string, object>
+                    {
+                        { "Jitter", jitter },
+                        { "Bandwidth", bandwidth }
+                    },
+                    PingSuccess = true, // Example placeholder
+                    PingTime = pingResult.RoundTripTime,
+                    Jitter = jitter,
+                    Bandwidth = bandwidth,
+                    Quality = quality
+                };
+            }
+            catch (NetworkException ex)
+            {
+                _logger.Error(ex, "Network diagnostics failed: {Message}", ex.Message);
+                MessageBox.Show($"Network diagnostics failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Unexpected error during network diagnostics: {Message}", ex.Message);
+                MessageBox.Show("An unexpected error occurred during network diagnostics.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
+        }
     }
 
     public class ConnectionStateTracker
@@ -1377,7 +1466,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                         {
                             if (connection.CurrentState == ConnectionStateType.Connected)
                             {
-                                _ = UpdateConnectionNetworkStats(connection);
+                                UpdateConnectionNetworkStats(connection);
                             }
                         }
                     }
@@ -1385,63 +1474,120 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating network stats");
+                _logger.Error(ex, "Error updating network stats");
             }
         }
 
-        private async Task UpdateConnectionNetworkStats(ConnectionState state)
+        private void UpdateConnectionNetworkStats(ConnectionState state)
         {
             try
             {
                 if (string.IsNullOrEmpty(state.ServerUrl))
                 {
-                    _logger.LogWarning("Server URL is null or empty");
+                    _logger.Warning("Server URL is null or empty");
                     return;
                 }
 
                 var uri = new Uri(state.ServerUrl);
                 var port = uri.Port;
-
-                var diagnostics = await PerformNetworkDiagnosticsAsync(state.ServerUrl, port).ConfigureAwait(false);
-                state.NetworkStats = new Models.NetworkStats
-                {
-                    IsDnsAvailable = diagnostics.IsDnsAvailable,
-                    IsPortAccessible = diagnostics.IsPortAccessible,
-                    Latency = diagnostics.Latency,
-                    NetworkType = diagnostics.NetworkType,
-                    NetworkSpeed = diagnostics.NetworkSpeed,
-                    Jitter = diagnostics.Diagnostics.ContainsKey("Jitter") ? Convert.ToDouble(diagnostics.Diagnostics["Jitter"]) : 0,
-                    Bandwidth = diagnostics.Diagnostics.ContainsKey("Bandwidth") ? Convert.ToDouble(diagnostics.Diagnostics["Bandwidth"]) : 0,
-                    Quality = diagnostics.NetworkQuality,
-                    PingSuccess = diagnostics.PingSuccess,
-                    PingTime = diagnostics.PingTime
-                };
-
-                // Add diagnostics with proper type conversion
-                foreach (var kvp in diagnostics.Diagnostics)
-                {
-                    if (kvp.Value != null)
-                    {
-                        switch (kvp.Key)
-                        {
-                            case "Latency" when kvp.Value is double latency:
-                                state.Diagnostics[kvp.Key] = latency;
-                                break;
-                            case "Port" when kvp.Value is int portValue:
-                                state.Diagnostics[kvp.Key] = portValue;
-                                break;
-                            default:
-                                state.Diagnostics[kvp.Key] = kvp.Value.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
-                                break;
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating network stats for {ServerUrl}", state.ServerUrl);
+                _logger.Error(ex, "Error");
             }
         }
+                ////var diagnostics = PerformNetworkDiagnosticsAsync(state.ServerUrl, port);
+                //state.NetworkStats = new Models.NetworkStats
+                //{
+                //    IsDnsAvailable = diagnostics.Result.IsDnsAvailable,
+                //    IsPortAccessible = diagnostics.Result.IsPortAccessible,
+                //    Latency = diagnostics.Result.Latency,
+                //    NetworkType = diagnostics.Result.NetworkType,
+                //    NetworkSpeed = diagnostics.Result.NetworkSpeed,
+                //    Jitter = diagnostics.Result.Diagnostics.ContainsKey("Jitter") ? Convert.ToDouble(diagnostics.Result.Diagnostics["Jitter"]) : 0,
+                //    Bandwidth = diagnostics.Result.Diagnostics.ContainsKey("Bandwidth") ? Convert.ToDouble(diagnostics.Result.Diagnostics["Bandwidth"]) : 0,
+                //    Quality = diagnostics.Result.NetworkQuality,
+                //    PingSuccess = diagnostics.Result.PingSuccess,
+                //    PingTime = diagnostics.Result.PingTime
+                //};
+
+            // Add diagnostics with proper type conversion
+            //        foreach (var kvp in diagnostics.Result.Diagnostics)
+            //        {
+            //            if (kvp.Value != null)
+            //            {
+            //                switch (kvp.Key)
+            //                {
+            //                    case "Latency" when kvp.Value is double latency:
+            //                        state.Diagnostics[kvp.Key] = latency;
+            //                        break;
+            //                    case "Port" when kvp.Value is int portValue:
+            //                        state.Diagnostics[kvp.Key] = portValue;
+            //                        break;
+            //                    default:
+            //                        state.Diagnostics[kvp.Key] = kvp.Value.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+            //                        break;
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _logger.Error(ex, "Error updating network stats for {ServerUrl}", state.ServerUrl);
+            //    }
+            //}
+
+            //private async Task<NetworkDiagnosticsResult> PerformNetworkDiagnosticsAsync(string host, int port)
+            //{
+            //    try
+            //    {
+            //        var diagnostics = new StringBuilder();
+            //        // Assuming pingResult, bandwidth, jitter, and quality are calculated elsewhere
+            //        var pingResult = new { RoundTripTime = 50 }; // Example placeholder
+            //        var bandwidth = 10.0; // Example placeholder
+            //        var jitter = CalculateJitter(pingResult.RoundTripTime);
+            //        var quality = GetNetworkStatusText(pingResult.RoundTripTime, jitter, bandwidth);
+
+            //        diagnostics.AppendLine($"Network Diagnostics for {host}:{port}");
+            //        diagnostics.AppendLine($"Ping: {pingResult.RoundTripTime}ms");
+            //        diagnostics.AppendLine($"Bandwidth: {bandwidth:F2} Mbps");
+            //        diagnostics.AppendLine($"Jitter: {jitter:F2}ms");
+            //        diagnostics.AppendLine($"Network Quality: {quality}");
+
+            //        DiagnosticsText = diagnostics.ToString();
+
+            //        return new NetworkDiagnosticsResult
+            //        {
+            //            IsDnsAvailable = true, // Example placeholder
+            //            IsPortAccessible = true, // Example placeholder
+            //            Latency = pingResult.RoundTripTime,
+            //            NetworkType = "ExampleType", // Example placeholder
+            //            NetworkSpeed = bandwidth,
+            //            Diagnostics = new Dictionary<string, object>
+            //            {
+            //                { "Jitter", jitter },
+            //                { "Bandwidth", bandwidth }
+            //            },
+            //            PingSuccess = true, // Example placeholder
+            //            PingTime = pingResult.RoundTripTime,
+            //            Jitter = jitter,
+            //            Bandwidth = bandwidth,
+            //            Quality = quality
+            //        };
+            //    }
+            //    catch (NetworkException ex)
+            //    {
+            //        _logger.Error(ex, "Network diagnostics failed: {Message}", ex.Message);
+            //        MessageBox.Show($"Network diagnostics failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //        throw;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _logger.Error(ex, "Unexpected error during network diagnostics: {Message}", ex.Message);
+            //        MessageBox.Show("An unexpected error occurred during network diagnostics.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //        throw;
+            //    }
+            //}
 
         public void UpdateState(string connectionId, ConnectionState newState)
         {
@@ -1505,7 +1651,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                         state.ErrorCounts[errorType] >= threshold)
                     {
 
-                        _logger.LogWarning("Error threshold exceeded for {ErrorType} on connection {ConnectionId}",
+                        _logger.Warning("Error threshold exceeded for {ErrorType} on connection {ConnectionId}",
                             errorType, connectionId);
                         HandleErrorThresholdExceeded(connectionId, errorType);
                     }
@@ -1542,7 +1688,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                 }
 
                 // Log state change
-                _logger.LogDebug("Connection state updated for {ConnectionId}:\n" +
+                _logger.Debug("Connection state updated for {ConnectionId}:\n" +
                     "1. State Change:\n" +
                     "   - Previous: {PreviousState}\n" +
                     "   - Current: {CurrentState}\n" +
@@ -1617,7 +1763,7 @@ namespace ArmaReforgerServerMonitor.Frontend
                     break;
             }
 
-            _logger.LogWarning("Error threshold exceeded for {ErrorType} on connection {ConnectionId}. " +
+            _logger.Warning("Error threshold exceeded for {ErrorType} on connection {ConnectionId}. " +
                 "Current state: {CurrentState}, Error count: {ErrorCount}",
                 errorType, connectionId, state.CurrentState, state.ErrorCounts[errorType]);
         }
@@ -1645,7 +1791,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             {
                 if (_connectionStates.Remove(connectionId))
                 {
-                    _logger.LogDebug("Connection state cleared for {ConnectionId}", connectionId);
+                    _logger.Debug("Connection state cleared for {ConnectionId}", connectionId);
                 }
             }
         }

@@ -3,28 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\services\\memorycacheservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:services\\memorycacheservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\services\\metricsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:services\\metricsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\battlenet\\networkmeasurement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:battlenet\\networkmeasurement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\battlenet\\networkdiagnostics.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:battlenet\\networkdiagnostics.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\services\\networkservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:services\\networkservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\services\\loggingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:services\\loggingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|c:\\users\\marwa\\onedrive\\documents\\repo\\rewrite 5\\armareforgerservermonitorrewrite\\frontend\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{14D9D5E6-EB7C-8480-138F-C7889C819E36}|ArmaReforgerServerMonitor.Frontend.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -39,79 +19,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "MemoryCacheService.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\MemoryCacheService.cs",
-              "RelativeDocumentMoniker": "Services\\MemoryCacheService.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\MemoryCacheService.cs",
-              "RelativeToolTip": "Services\\MemoryCacheService.cs",
-              "ViewState": "AgIAACAAAAAAAAAAAAAmwC0AAAAAAAAAAAAAAA==",
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\MainWindow.xaml.cs",
+              "RelativeToolTip": "MainWindow.xaml.cs",
+              "ViewState": "AgIAALQBAAAAAAAAAAAawMABAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T01:10:49.695Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MetricsService.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\MetricsService.cs",
-              "RelativeDocumentMoniker": "Services\\MetricsService.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\MetricsService.cs",
-              "RelativeToolTip": "Services\\MetricsService.cs",
-              "ViewState": "AgIAAD4BAAAAAAAAAAAmwEYBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T01:02:20.42Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "NetworkMeasurement.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\BattleNET\\NetworkMeasurement.cs",
-              "RelativeDocumentMoniker": "BattleNET\\NetworkMeasurement.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\BattleNET\\NetworkMeasurement.cs",
-              "RelativeToolTip": "BattleNET\\NetworkMeasurement.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T00:56:27.91Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "NetworkDiagnostics.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\BattleNET\\NetworkDiagnostics.cs",
-              "RelativeDocumentMoniker": "BattleNET\\NetworkDiagnostics.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\BattleNET\\NetworkDiagnostics.cs",
-              "RelativeToolTip": "BattleNET\\NetworkDiagnostics.cs",
-              "ViewState": "AgIAAD8BAAAAAAAAAAAEwEgBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T00:45:13.523Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NetworkService.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\NetworkService.cs",
-              "RelativeDocumentMoniker": "Services\\NetworkService.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\NetworkService.cs",
-              "RelativeToolTip": "Services\\NetworkService.cs",
-              "ViewState": "AgIAAAwCAAAAAAAAAAAmwBkCAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T00:31:12.888Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "LoggingService.cs",
-              "DocumentMoniker": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\LoggingService.cs",
-              "RelativeDocumentMoniker": "Services\\LoggingService.cs",
-              "ToolTip": "C:\\Users\\marwa\\OneDrive\\Documents\\repo\\rewrite 5\\ArmAReforgerServerMonitorRewrite\\Frontend\\Services\\LoggingService.cs",
-              "RelativeToolTip": "Services\\LoggingService.cs",
-              "ViewState": "AgIAAJwAAAAAAAAAAAAswJ4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T00:25:36.78Z",
+              "WhenOpened": "2025-03-13T03:42:36.426Z",
               "EditorCaption": ""
             }
           ]

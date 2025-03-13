@@ -7,7 +7,7 @@
                       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                       Title="ArmA Reforger Server Monitor (Made by ArmAGaming.World)" 
                       Height="900" Width="1200" Icon="Icon.ico"
-                      Closing="OnWindowClosing">
+                      Closing="OnWindowClosingAsync">
     <!-- Bind DataContext to self -->
     <Controls:MetroWindow.DataContext>
         <Binding RelativeSource="{RelativeSource Self}" />

@@ -1,9 +1,9 @@
 using ArmaReforgerServerMonitor.Frontend.Configuration;
+using ArmaReforgerServerMonitor.Frontend.Models;
 using ArmaReforgerServerMonitor.Frontend.Services;
 using ArmaReforgerServerMonitor.Frontend.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using UtilitiesGlobalExceptionHandler = ArmaReforgerServerMonitor.Frontend.Utilities.GlobalExceptionHandler;
+using ILogger = Serilog.ILogger;
 
 namespace ArmaReforgerServerMonitor.Frontend
 {
@@ -35,7 +36,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         private IAuthService? _authService;
         private IThemeService? _themeService;
         private UtilitiesGlobalExceptionHandler? _globalExceptionHandler;
-        private readonly ILogger<App> _logger;
+        private readonly ILogger _logger;
         private IUpdateService? _updateService;
         private ISettingsService? _settingsService;
         private IMetricsService? _metricsService;
@@ -56,7 +57,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             // Configure Serilog early for startup logging
             ConfigureStartupLogging();
-            _logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<App>();
+            _logger = Log.ForContext<App>();
             InitializeComponent();
             InitializeApplication();
         }
@@ -149,11 +150,11 @@ namespace ArmaReforgerServerMonitor.Frontend
                 };
                 _pollTimer.Tick += async (s, e) => await PollBackendSafeAsync();
 
-                _logger.LogInformation("Application initialized successfully");
+                _logger.Information("Application initialized successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to initialize application");
+                _logger.Error(ex, "Failed to initialize application");
                 MessageBox.Show($"Failed to initialize application: {ex.Message}", "Initialization Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Current.Shutdown();
@@ -170,7 +171,6 @@ namespace ArmaReforgerServerMonitor.Frontend
             // Add logging
             services.AddLogging(builder =>
             {
-                builder.ClearProviders();
                 builder.AddSerilog(dispose: true);
             });
 
@@ -180,7 +180,16 @@ namespace ArmaReforgerServerMonitor.Frontend
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<ISettingsService, SettingsService>();
-            services.AddSingleton<IMetricsService, MetricsService>();
+            services.AddSingleton<IMetricsService>(provider =>
+            {
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("DefaultClient");
+                var cacheService = provider.GetRequiredService<ICacheService>();
+                var settings = provider.GetRequiredService<IOptions<AppSettings>>();
+                var mainWindow = provider.GetRequiredService<MainWindow>();
+                var baseUrl = mainWindow.ServerUrlTextBox.Text; // Retrieve the base URL dynamically
+
+                return new MetricsService(httpClient, cacheService, settings, baseUrl);
+            });
             services.AddSingleton<UtilitiesGlobalExceptionHandler>();
             services.AddSingleton<ICacheService, MemoryCacheService>();
             services.AddSingleton<INetworkService, NetworkService>();
@@ -196,7 +205,14 @@ namespace ArmaReforgerServerMonitor.Frontend
             // Add main window
             services.AddTransient<MainWindow>();
 
-            _logger.LogInformation("Services configured successfully");
+            // Ensure IColorSchemeProvider is registered
+            services.AddSingleton<IColorSchemeProvider, ColorScheme>();
+
+            services.AddTransient<HttpClientPolicyHandler>();
+
+            services.AddSingleton<ILogger>(sp => Log.Logger);
+
+            _logger.Information("Services configured successfully");
         }
 
         private void ConfigureLogging()
@@ -255,7 +271,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             }
 
             Log.Logger = logConfig.CreateLogger();
-            _logger.LogInformation("Logging configured successfully");
+            _logger.Information("Logging configured successfully");
         }
 
         private void ConfigureErrorHandling()
@@ -263,7 +279,7 @@ namespace ArmaReforgerServerMonitor.Frontend
             DispatcherUnhandledException += (s, e) => _globalExceptionHandler?.HandleDispatcherUnhandledException(s, e);
             TaskScheduler.UnobservedTaskException += (s, e) => _globalExceptionHandler?.HandleUnobservedTaskException(s, e);
             AppDomain.CurrentDomain.UnhandledException += (s, e) => _globalExceptionHandler?.HandleUnhandledException(s, e);
-            _logger.LogInformation("Error handling configured successfully");
+            _logger.Information("Error handling configured successfully");
         }
 
         private async Task PollBackendSafeAsync()
@@ -287,12 +303,12 @@ namespace ArmaReforgerServerMonitor.Frontend
             catch (Exception ex)
             {
                 _failureCount++;
-                _logger.LogError(ex, "Failed to poll backend. Attempt {FailureCount}", _failureCount);
+                _logger.Error(ex, "Failed to poll backend. Attempt {FailureCount}", _failureCount);
 
                 if (_settings != null && _failureCount >= _settings.MaxRetryAttempts)
                 {
                     _pollTimer?.Stop();
-                    _logger.LogError("Max retry attempts reached. Polling stopped.");
+                    _logger.Error("Max retry attempts reached. Polling stopped.");
                 }
             }
             finally
@@ -307,14 +323,14 @@ namespace ArmaReforgerServerMonitor.Frontend
 
             try
             {
-                _logger.LogInformation("Application starting up");
+                _logger.Information("Application starting up");
                 var mainWindow = Services.GetRequiredService<MainWindow>();
                 mainWindow.Show();
                 _pollTimer?.Start();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to start application");
+                _logger.Error(ex, "Failed to start application");
                 MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
@@ -325,7 +341,7 @@ namespace ArmaReforgerServerMonitor.Frontend
         {
             try
             {
-                _logger.LogInformation("Application shutting down");
+                _logger.Information("Application shutting down");
                 _pollTimer?.Stop();
                 _mutex?.ReleaseMutex();
                 _mutex?.Dispose();

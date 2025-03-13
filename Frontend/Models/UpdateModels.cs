@@ -9,7 +9,8 @@ namespace ArmaReforgerServerMonitor.Frontend.Models
         Downloading,
         Installing,
         Completed,
-        Failed
+        Failed,
+        UpdateAvailable
     }
 
     public class UpdateStatusEventArgs : EventArgs

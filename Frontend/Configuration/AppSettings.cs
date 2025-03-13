@@ -89,6 +89,7 @@ namespace ArmaReforgerServerMonitor.Frontend.Configuration
         public string? GitHubOwner { get; set; }
         public string? GitHubRepo { get; set; }
         public string? CurrentVersion { get; set; }
+        public WindowSettings? WindowSettings { get; internal set; }
 
         // Update settings from another instance
         public void UpdateFrom(AppSettings other)
@@ -428,7 +429,8 @@ namespace ArmaReforgerServerMonitor.Frontend.Configuration
         public bool SimulateLatencyByDefault { get; set; } = false;
         public MetricRange DefaultLatencyRange { get; set; } = new() { Min = 50, Max = 200 };
         public bool GenerateTrendsByDefault { get; set; } = true;
-        public int DefaultTrendCycleDuration { get; set; } = 60;
+        public MetricRange DefaultTrendCycleDuration { get; set; } = new MetricRange { Min = 60, Max = 60 };
+
     }
 
     /// <summary>
