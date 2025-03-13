@@ -1,0 +1,47 @@
+<metro:MetroWindow x:Class="ArmaReforgerServerMonitor.Frontend.FrontendLogsWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+                   Title="Frontend Logs" Height="600" Width="800"
+                   WindowStartupLocation="CenterOwner"
+                   BorderThickness="1"
+                   BorderBrush="#FF3C3C3C"
+                   Background="#FF1E1E1E">
+    <metro:MetroWindow.Resources>
+        <Style x:Key="TerminalTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="Foreground" Value="#FFA7D6A7"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="CaretBrush" Value="#FFA7D6A7"/>
+        </Style>
+    </metro:MetroWindow.Resources>
+    
+    <Grid>
+        <DockPanel>
+            <!-- Terminal Title Bar -->
+            <Border DockPanel.Dock="Top" 
+                    Background="#FF2D2D2D" 
+                    BorderBrush="#FF3C3C3C" 
+                    BorderThickness="0,0,0,1">
+                <TextBlock Text="Frontend Logs Terminal" 
+                         Foreground="#FFA7D6A7" 
+                         FontFamily="Consolas" 
+                         Margin="10,5"
+                         FontSize="12"/>
+            </Border>
+            
+            <!-- Terminal Content -->
+            <TextBox x:Name="LogsTextBox"
+                     Style="{StaticResource TerminalTextBoxStyle}"
+                     Margin="0"/>
+        </DockPanel>
+    </Grid>
+</metro:MetroWindow>

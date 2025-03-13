@@ -1,0 +1,82 @@
+<Window x:Class="ArmaReforgerServerMonitor.Frontend.Windows.DemoConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArmaReforgerServerMonitor.Frontend.Windows"
+        mc:Ignorable="d"
+        Title="Demo Configuration" Height="450" Width="600"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <GroupBox Header="CPU Settings">
+                <StackPanel Margin="5">
+                    <CheckBox Content="Generate Trends" IsChecked="{Binding GenerateTrends}" Margin="0,5"/>
+                    <TextBlock Text="CPU Usage Range (%)"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <TextBox Text="{Binding CpuRangeMin}" Width="50"/>
+                        <TextBlock Text=" - " Margin="5,0"/>
+                        <TextBox Text="{Binding CpuRangeMax}" Width="50"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Memory Settings" Margin="0,10">
+                <StackPanel Margin="5">
+                    <TextBlock Text="Memory Usage Range (%)"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <TextBox Text="{Binding MemoryRangeMin}" Width="50"/>
+                        <TextBlock Text=" - " Margin="5,0"/>
+                        <TextBox Text="{Binding MemoryRangeMax}" Width="50"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Performance Settings" Margin="0,10">
+                <StackPanel Margin="5">
+                    <TextBlock Text="FPS Range"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <TextBox Text="{Binding FpsRangeMin}" Width="50"/>
+                        <TextBlock Text=" - " Margin="5,0"/>
+                        <TextBox Text="{Binding FpsRangeMax}" Width="50"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Player Count Range" Margin="0,10,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <TextBox Text="{Binding PlayerCountMin}" Width="50"/>
+                        <TextBlock Text=" - " Margin="5,0"/>
+                        <TextBox Text="{Binding PlayerCountMax}" Width="50"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Advanced Settings" Margin="0,10">
+                <StackPanel Margin="5">
+                    <TextBlock Text="Trend Cycle Duration (seconds)"/>
+                    <TextBox Text="{Binding TrendCycleDuration}" Width="100" HorizontalAlignment="Left" Margin="0,5"/>
+
+                    <CheckBox Content="Simulate Latency" IsChecked="{Binding SimulateLatency}" Margin="0,10"/>
+                    <TextBlock Text="Latency Range (ms)" Margin="0,5,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <TextBox Text="{Binding LatencyRangeMin}" Width="50"/>
+                        <TextBlock Text=" - " Margin="5,0"/>
+                        <TextBox Text="{Binding LatencyRangeMax}" Width="50"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Error Probability (0-1)" Margin="0,10,0,0"/>
+                    <TextBox Text="{Binding ErrorProbability}" Width="50" HorizontalAlignment="Left" Margin="0,5"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="OK" Width="75" Click="OkButton_Click"/>
+            <Button Content="Cancel" Width="75" Margin="10,0,0,0" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 
